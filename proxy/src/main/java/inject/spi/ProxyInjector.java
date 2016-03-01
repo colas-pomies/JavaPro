@@ -58,17 +58,19 @@ public class ProxyInjector extends AbstractInjector {
     protected boolean hasOneMethodAnnotedWith(Class clazz, Class<? extends Annotation> annotation) {
         List<Method> methods = Arrays.asList(clazz.getMethods());
         Iterator<Method> it = methods.iterator();
-        while(it.hasNext() && it.next().isAnnotationPresent(annotation)) ;
+        while(it.hasNext() && !it.next().isAnnotationPresent(annotation)) ;
 
-        return !it.hasNext();
+        return it.hasNext() || it.next().isAnnotationPresent(annotation);
     }
 
     protected void defineProxy(Object object) throws IllegalAccessException, InstantiationException {
         LOGGER.log(Level.INFO,"Defining the proxy for the class " + Inject.class.getName());
 
         if(object.getClass().isAnnotationPresent(Transactional.class) || hasOneMethodAnnotedWith(object.getClass(), Transactional.class)) {
-            LOGGER.log(Level.INFO,"Has Transactionnal" + Inject.class.getName());
+            LOGGER.log(Level.INFO,"Has Transactionnal : " + Inject.class.getName());
+
             TransactionFactory.newTransaction(object);
+            LOGGER.log(Level.INFO, "Object proxyfied");
         }
 
     }

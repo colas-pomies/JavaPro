@@ -17,12 +17,13 @@ import java.util.logging.Logger;
 public class Transaction implements InvocationHandler {
 
     protected Object obj;
-    protected Logger logger = Logger.getLogger(obj.getClass().getName());
+    protected Logger logger;
     protected Stack<Object> stateQueue;
 
     public Transaction(Object obj) {
         this.obj = obj;
         this.stateQueue = new Stack<>();
+        this.logger = Logger.getLogger(obj.getClass().getName());
     }
 
     protected void commit(Method m, Object[] args) {
