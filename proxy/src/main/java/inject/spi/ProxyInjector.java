@@ -10,8 +10,11 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.AnnotationFormatError;
 import java.lang.reflect.Field;
-import java.util.Set;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,14 +55,18 @@ public class ProxyInjector extends AbstractInjector {
         }
     }
 
+    protected boolean hasOneMethodAnnotedWith(Class clazz, Class<? extends Annotation> annotation) {
+        List<Method> methods = Arrays.asList(clazz.getMethods());
+        Iterator<Method> it = methods.iterator();
+        while(it.hasNext() && it.next().isAnnotationPresent(annotation)) ;
+
+        return !it.hasNext();
+    }
+
     protected void defineProxy(Object object) throws IllegalAccessException, InstantiationException {
         LOGGER.log(Level.INFO,"Defining the proxy for the class " + Inject.class.getName());
 
-        Reflections reflections = new Reflections('');
-
-        reflections.getMethodsAnnotatedWith(Transactional.class);
-
-        if(object.getClass().isAnnotationPresent(Transactional.class) || object.getClass().getMethods()[0].isAnnotationPresent()) {
+        if(object.getClass().isAnnotationPresent(Transactional.class) || hasOneMethodAnnotedWith(object.getClass(), Transactional.class)) {
             LOGGER.log(Level.INFO,"Has Transactionnal" + Inject.class.getName());
             TransactionFactory.newTransaction(object);
         }

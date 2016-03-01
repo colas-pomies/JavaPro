@@ -9,8 +9,8 @@ public class MyServiceProxy extends MyService {
 
     @Override
     public void doSomething() {
-        logger.info(this.getClass() + "Before");
+        logger.info(this.getClass() + " : Before");
         super.doSomething();
-        logger.info(this.getClass() + "After");
+        logger.info(this.getClass() + " : After");
     }
 }
