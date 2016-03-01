@@ -11,7 +11,6 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.annotation.Annotation;
-import java.lang.annotation.AnnotationFormatError;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -63,16 +62,16 @@ public class ProxyInjector extends AbstractInjector {
         return it.hasNext() || it.next().isAnnotationPresent(annotation);
     }
 
-    protected void defineProxy(Object object) throws IllegalAccessException, InstantiationException {
+    protected Object defineProxy(Object object) throws IllegalAccessException, InstantiationException {
         LOGGER.log(Level.INFO,"Defining the proxy for the class " + Inject.class.getName());
 
         if(object.getClass().isAnnotationPresent(Transactional.class) || hasOneMethodAnnotedWith(object.getClass(), Transactional.class)) {
             LOGGER.log(Level.INFO,"Has Transactionnal : " + Inject.class.getName());
 
-            TransactionFactory.newTransaction(object);
-            LOGGER.log(Level.INFO, "Object proxyfied");
+            return TransactionFactory.newTransaction(object);
+            //LOGGER.log(Level.INFO, "Object proxyfied");
         }
-
+        return object;
     }
 
     public ProxyInjector() {
@@ -105,9 +104,7 @@ public class ProxyInjector extends AbstractInjector {
                     Object obj = classImplementation.newInstance();
                     inject(obj);
 
-                    defineProxy(obj);
-
-                    f.set(instance, obj);
+                    f.set(instance, defineProxy(obj));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

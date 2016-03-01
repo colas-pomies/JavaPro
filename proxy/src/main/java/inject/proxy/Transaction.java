@@ -28,7 +28,7 @@ public class Transaction implements InvocationHandler {
 
     protected void commit(Method m, Object[] args) {
         logger.info("Commit : " + m.getName());
-        stateQueue.push(Clone.deepClone(obj));
+        //stateQueue.push(Clone.deepClone(obj));
 
     }
 
@@ -38,13 +38,13 @@ public class Transaction implements InvocationHandler {
 
     protected void rollback() {
         logger.info("Rollback : " + obj.getClass());
-        obj = stateQueue.pop();
+        //obj = stateQueue.pop();
     }
 
     //TODO: Define a don't do for exception
     public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
         Object result;
-
+        logger.info("--------------Invoke");
         if(obj.getClass().isAnnotationPresent(Transactional.class) || m.isAnnotationPresent(Transactional.class)) {
             try {
                 commit(m, args);

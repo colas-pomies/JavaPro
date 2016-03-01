@@ -28,7 +28,7 @@ public class ProxyInjection {
 
         service.doSomething();
 
-        assert(service instanceof api2.impl.MyService);
+        assert(!(service instanceof api2.impl.MyService));
     }
 
     @Test

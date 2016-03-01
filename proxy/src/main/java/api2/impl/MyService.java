@@ -5,15 +5,17 @@ import inject.api.annotations.Transactional;
 
 import java.util.logging.Logger;
 
+@Transactional
 public class MyService implements IMyService {
 
-    protected Logger logger = Logger.getGlobal();
+    protected Logger logger;
 
 
     protected int value;
 
     public MyService() {
         value = 0;
+        logger = Logger.getGlobal();
     }
 
     @Override
@@ -23,7 +25,6 @@ public class MyService implements IMyService {
     }
 
     @Override
-    @Transactional
     public void editSomething(final int value) {
         this.value = value;
     }
@@ -34,7 +35,6 @@ public class MyService implements IMyService {
     }
 
     @Override
-    @Transactional
     public void editAndThrowSomething(final int value) {
         this.value = value;
         throw new RuntimeException("EditAndThrowSometing");
