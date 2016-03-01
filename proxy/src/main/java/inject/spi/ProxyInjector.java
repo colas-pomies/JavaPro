@@ -1,7 +1,9 @@
 package inject.spi;
 
+import inject.api.annotations.Transactional;
 import inject.api.annotations.Inject;
 import inject.api.annotations.Prefered;
+import inject.proxy.TransactionFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.FieldAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -13,20 +15,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.reflections.ReflectionUtils.getAllFields;
+public class ProxyInjector extends AbstractInjector {
 
-/**
- * Created by colas pomiès on 19/01/2016.
- */
-public class BootstrapInjector extends AbstractInjector {
+    private final static Logger LOGGER = Logger.getLogger(ProxyInjector.class.getName());
 
-    private final static Logger LOGGER = Logger.getLogger(BootstrapInjector.class.getName());
-
-    public <T> BootstrapInjector() {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage("inject"))
-                .setScanners(new FieldAnnotationsScanner(), new SubTypesScanner()));
-
+    protected <T> void bindFields(Reflections reflections) throws InstantiationException, IllegalAccessException {
         LOGGER.log(Level.INFO,"Boostrap Injection");
         Set<Field> fields = reflections.getFieldsAnnotatedWith(Inject.class);
         for (Field f : fields) {
@@ -53,10 +46,39 @@ public class BootstrapInjector extends AbstractInjector {
                 if (classToBind == null) {
                     throw new RuntimeException("Several implementations were found. Use @Prefered to choose one");
                 }
-
+                //defineProxy(classToBind);
                 this.bind(classInterface, classToBind);
             }
         }
+    }
+
+    protected void defineProxy(Object object) throws IllegalAccessException, InstantiationException {
+        LOGGER.log(Level.INFO,"Defining the proxy for the class " + Inject.class.getName());
+
+        Reflections reflections = new Reflections('');
+
+        reflections.getMethodsAnnotatedWith(Transactional.class);
+
+        if(object.getClass().isAnnotationPresent(Transactional.class) || object.getClass().getMethods()[0].isAnnotationPresent()) {
+            LOGGER.log(Level.INFO,"Has Transactionnal" + Inject.class.getName());
+            TransactionFactory.newTransaction(object);
+        }
+
+    }
+
+    public ProxyInjector() {
+
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .setUrls(ClasspathHelper.forPackage("inject"))
+                .setScanners(new FieldAnnotationsScanner(), new SubTypesScanner()));
+        try {
+            bindFields(reflections);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -73,6 +95,9 @@ public class BootstrapInjector extends AbstractInjector {
                     f.setAccessible(true);
                     Object obj = classImplementation.newInstance();
                     inject(obj);
+
+                    defineProxy(obj);
+
                     f.set(instance, obj);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
