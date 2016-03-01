@@ -5,4 +5,12 @@ package api2.model;
  */
 public interface IMyService {
     public void doSomething();
+
+    public void editSomething(final int value);
+
+    public void editSomethingNotTransactional(final int value);
+
+    public void editAndThrowSomething(final int value);
+
+    int getValue();
 }
