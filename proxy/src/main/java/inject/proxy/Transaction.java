@@ -3,11 +3,13 @@ package inject.proxy;
 import inject.api.annotations.Transactional;
 import utils.Clone;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.logging.Logger;
 
@@ -28,7 +30,19 @@ public class Transaction implements InvocationHandler {
 
     protected void commit(Method m, Object[] args) {
         logger.info("Commit : " + m.getName());
-        //stateQueue.push(Clone.deepClone(obj));
+
+        try {
+            Object tmp = obj.getClass().newInstance();
+
+            for (Field f : obj.getClass().getFields()) {
+                f.setAccessible(true);
+                f.set(tmp, obj);
+            }
+            stateQueue.push(tmp);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -38,7 +52,7 @@ public class Transaction implements InvocationHandler {
 
     protected void rollback() {
         logger.info("Rollback : " + obj.getClass());
-        //obj = stateQueue.pop();
+        obj = stateQueue.pop();
     }
 
     //TODO: Define a don't do for exception
